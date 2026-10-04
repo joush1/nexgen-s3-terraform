@@ -12,12 +12,14 @@ pipeline {
         stage('Install Terraform (if missing)') {
             steps {
                 sh '''
-                    if ! command -v terraform >/dev/null 2>&1; then
-                        apt-get update && apt-get install -y wget unzip
-                        wget -q https://releases.hashicorp.com/terraform/1.9.8/terraform_1.9.8_linux_amd64.zip
-                        unzip -o terraform_1.9.8_linux_amd64.zip -d /usr/local/bin
+                    if [ ! -f ./terraform ]; then
+                        TF_VERSION=1.9.8
+                        curl -sSLo terraform.zip https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
+                        jar xf terraform.zip
+                        chmod +x terraform
+                        rm -f terraform.zip
                     fi
-                    terraform -version
+                    ./terraform -version
                 '''
             }
         }
@@ -25,7 +27,7 @@ pipeline {
         stage('Terraform Init') {
             steps {
                 withAWS(credentials: 'my-cba-aws-credential', region: 'eu-west-2') {
-                    sh 'terraform init'
+                    sh './terraform init'
                 }
             }
         }
@@ -33,7 +35,7 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 withAWS(credentials: 'my-cba-aws-credential', region: 'eu-west-2') {
-                    sh 'terraform plan -out=tfplan'
+                    sh './terraform plan -out=tfplan'
                 }
             }
         }
@@ -41,7 +43,7 @@ pipeline {
         stage('Terraform Apply') {
             steps {
                 withAWS(credentials: 'my-cba-aws-credential', region: 'eu-west-2') {
-                    sh 'terraform apply -auto-approve tfplan'
+                    sh './terraform apply -auto-approve tfplan'
                 }
             }
         }
