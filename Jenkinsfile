@@ -4,8 +4,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                
-                git branch: 'main', url: 'https://github.com/joush1/nexgen-s3-terraform.git'
+                // Replace with your own GitHub repo URL
+                git branch: 'main', url: 'https://github.com/<your-username>/<your-repo>.git'
             }
         }
 
@@ -15,7 +15,7 @@ pipeline {
                     if [ ! -f ./terraform ]; then
                         TF_VERSION=1.9.8
                         curl -sSLo terraform.zip https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip
-                        jar xf terraform.zip
+                        python3 -c "import zipfile; zipfile.ZipFile('terraform.zip').extractall('.')"
                         chmod +x terraform
                         rm -f terraform.zip
                     fi
